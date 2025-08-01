@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace EFaturaApp.Views.Customer
 {
-    public class IndexModel : PageModel
+    public class CreateModel : PageModel
     {
         public void OnGet()
         {
