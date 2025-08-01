@@ -1,3 +1,7 @@
+using EFaturaApp.Data;
+using Microsoft.EntityFrameworkCore;
+
+
 namespace EFaturaApp
 {
     public class Program
@@ -8,6 +12,8 @@ namespace EFaturaApp
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddDbContext<EFaturaContext>(options =>
+                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 

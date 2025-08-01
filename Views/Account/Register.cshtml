@@ -1,0 +1,30 @@
+﻿@model EFaturaApp.Models.User
+@{
+    ViewData["Title"] = "Kayıt Ol";
+}
+
+<h2>Kayıt Ol</h2>
+
+<form asp-action="Register" method="post">
+    <div>
+        <label>Kullanıcı Adı</label>
+        <input asp-for="Username" required />
+    </div>
+    <div>
+        <label>Şifre</label>
+        <input asp-for="Password" type="password" required />
+    </div>
+    <div>
+        <label>Ad Soyad</label>
+        <input asp-for="Fullname" required />
+    </div>
+    <div>
+        <label>E-mail</label>
+        <input asp-for="Email" required />
+    </div>
+    <div>
+        <label>Telefon Numarası</label>
+        <input asp-for="Telno" />
+    </div>
+    <button type="submit">Register</button>
+</form>
