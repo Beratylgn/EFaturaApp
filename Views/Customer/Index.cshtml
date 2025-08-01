@@ -1,0 +1,33 @@
+﻿@model List<EFaturaApp.Models.Customer>
+
+@{
+    ViewData["Title"] = "Müşteriler";
+}
+
+<div class="container mt-4">
+    <h2>Müşteriler</h2>
+    <a asp-action="Create" class="btn btn-primary mb-3">Yeni Müşteri Ekle</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Firma Adı</th>
+                <th>Vergi No</th>
+                <th>Adres</th>
+                <th>Email</th>
+                <th>Kayıt Tarihi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td>@c.CompanyName</td>
+                    <td>@c.TaxNumber</td>
+                    <td>@c.Address</td>
+                    <td>@c.Email</td>
+                    <td>@c.CreatedAt.ToShortDateString()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -2,19 +2,20 @@
     ViewData["Title"] = "Giriş Yap";
 }
 
-<h2>Giriş Yap</h2>
-
-<form asp-action="Login" method="post">
-    <div>
-        <label>Kullanıcı Adı</label>
-        <input type="text" name="username" required />
-    </div>
-    <div>
-        <label>Şifre</label>
-        <input type="password" name="password" required />
-    </div>
-    <button type="submit">Login</button>
-</form>
+<div class="container mt-5">
+    <h2>@ViewData["Title"]</h2>
+    <form asp-action="Login" method="post" class="w-50">
+        <div class="mb-3">
+            <label class="form-label">Kullanıcı Adı</label>
+            <input type="text" name="username" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Şifre</label>
+            <input type="password" name="password" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Giriş Yap</button>
+    </form>
+</div>
 
 @if (ViewBag.Error != null)
 {

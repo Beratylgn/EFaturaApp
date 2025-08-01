@@ -1,6 +1,5 @@
-﻿using EFaturaApp.Models;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
+using EFaturaApp.Models;
 
 namespace EFaturaApp.Data
 {
@@ -9,5 +8,6 @@ namespace EFaturaApp.Data
         public EFaturaContext(DbContextOptions<EFaturaContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Customer> Customers { get; set; } 
     }
 }

@@ -23,17 +23,24 @@ namespace EFaturaApp.Controllers
         [HttpPost]
         public IActionResult Login(string username, string password)
         {
+            // Kullanıcıyı veritabanında kontrol ediyoruz
             var user = _context.Users.FirstOrDefault(u => u.Username == username && u.Password == password);
 
             if (user != null)
             {
-                TempData["Message"] = $"Welcome {user.Fullname}!";
+                // Kullanıcı bulunduysa session açıyoruz
+                HttpContext.Session.SetInt32("UserId", user.Id);       // Kullanıcının ID'si
+                HttpContext.Session.SetString("Fullname", user.Fullname); // Kullanıcının adı
+
+                TempData["Message"] = $"Hoş geldin {user.Fullname}!";
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewBag.Error = "Invalid username or password!";
+            // Kullanıcı bulunamazsa hata mesajı
+            ViewBag.Error = "Kullanıcı adı veya şifre yanlış!";
             return View();
         }
+
 
         // GET: Account/Register
         public IActionResult Register()
@@ -49,5 +56,15 @@ namespace EFaturaApp.Controllers
             _context.SaveChanges();
             return RedirectToAction("Login");
         }
+
+        public IActionResult Logout()
+        {
+            // Tüm session bilgilerini siliyoruz
+            HttpContext.Session.Clear();
+
+            // Kullanıcıyı giriş sayfasına yönlendiriyoruz
+            return RedirectToAction("Login");
+        }
+
     }
 }
