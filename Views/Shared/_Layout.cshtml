@@ -29,6 +29,24 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Çıkış Yap</a>
                             </li>
+                            <li class="nav-item">
+                                <span class="nav-link text-dark">Hoşgeldin, @Context.Session.GetString("Fullname")</span>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Çıkış Yap</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Customer" asp-action="Index">Müşteriler</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Product" asp-action="Index">Ürünler</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Shipment" asp-action="Index">İrsaliyeler</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Invoice" asp-action="Index">Faturalar</a>
+                            </li>
                         }
                         else
                         {
