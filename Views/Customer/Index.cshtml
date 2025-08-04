@@ -15,6 +15,7 @@
                 <th>Adres</th>
                 <th>Email</th>
                 <th>Kayıt Tarihi</th>
+                <th>İşlemler</th>
             </tr>
         </thead>
         <tbody>
@@ -26,6 +27,10 @@
                     <td>@c.Address</td>
                     <td>@c.Email</td>
                     <td>@c.CreatedAt.ToShortDateString()</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-warning">Düzenle</a>
+                        <a asp-action="Delete" asp-route-id="@c.Id" class="btn btn-sm btn-danger">Sil</a>
+                    </td>
                 </tr>
             }
         </tbody>
