@@ -14,11 +14,35 @@ namespace EFaturaApp.Controllers
         }
 
         // Listeleme (Index)
-        public IActionResult Index()
+        public IActionResult Index(string searchString, int pageNumber = 1, int pageSize = 5)
         {
-            var customers = _context.Customers.ToList();
-            return View(customers);
+            var customers = _context.Customers.AsQueryable();
+
+            // Arama
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                customers = customers.Where(c => c.CompanyName.Contains(searchString)
+                                              || c.Email.Contains(searchString));
+            }
+
+            // Toplam kayıt sayısı
+            var totalRecords = customers.Count();
+
+            // Sayfalama
+            var items = customers
+                .OrderBy(c => c.CompanyName)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalRecords = totalRecords;
+            ViewBag.SearchString = searchString;
+
+            return View(items);
         }
+
 
         // GET: /Customer/Create
         public IActionResult Create()

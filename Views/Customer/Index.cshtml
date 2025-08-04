@@ -6,7 +6,17 @@
 
 <div class="container mt-4">
     <h2>Müşteriler</h2>
+
+    <!-- Arama Formu -->
+    <form asp-action="Index" method="get" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="searchString" value="@ViewBag.SearchString" class="form-control" placeholder="Müşteri ara..." />
+            <button type="submit" class="btn btn-primary">Ara</button>
+        </div>
+    </form>
+
     <a asp-action="Create" class="btn btn-primary mb-3">Yeni Müşteri Ekle</a>
+
     <table class="table table-striped">
         <thead>
             <tr>
@@ -19,20 +29,51 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var c in Model)
+            @if (Model != null && Model.Count > 0)
+            {
+                foreach (var c in Model)
+                {
+                    <tr>
+                        <td>@c.CompanyName</td>
+                        <td>@c.TaxNumber</td>
+                        <td>@c.Address</td>
+                        <td>@c.Email</td>
+                        <td>@c.CreatedAt.ToShortDateString()</td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-warning">Düzenle</a>
+                            <a asp-action="Delete" asp-route-id="@c.Id" class="btn btn-sm btn-danger">Sil</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
             {
                 <tr>
-                    <td>@c.CompanyName</td>
-                    <td>@c.TaxNumber</td>
-                    <td>@c.Address</td>
-                    <td>@c.Email</td>
-                    <td>@c.CreatedAt.ToShortDateString()</td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-warning">Düzenle</a>
-                        <a asp-action="Delete" asp-route-id="@c.Id" class="btn btn-sm btn-danger">Sil</a>
-                    </td>
+                    <td colspan="6" class="text-center">Kayıt bulunamadı.</td>
                 </tr>
             }
         </tbody>
     </table>
+
+    <!-- Sayfalandırma -->
+    <div class="mt-3">
+        <nav>
+            <ul class="pagination">
+                @{
+                    int totalPages = (int)Math.Ceiling((double)ViewBag.TotalRecords / ViewBag.PageSize);
+                    for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-pageNumber="@i"
+                               asp-route-searchString="@ViewBag.SearchString">
+                                @i
+                            </a>
+                        </li>
+                    }
+                }
+            </ul>
+        </nav>
+    </div>
 </div>
