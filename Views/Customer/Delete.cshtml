@@ -1,0 +1,23 @@
+﻿@model EFaturaApp.Models.Customer
+
+@{
+    ViewData["Title"] = "Müşteri Sil";
+}
+
+<div class="container mt-4">
+    <h2>Müşteri Sil</h2>
+
+    <h4>Bu müşteriyi silmek istediğinizden emin misiniz?</h4>
+    <div class="card p-3 mt-3">
+        <p><strong>Firma:</strong> @Model.CompanyName</p>
+        <p><strong>Vergi No:</strong> @Model.TaxNumber</p>
+        <p><strong>Email:</strong> @Model.Email</p>
+        <p><strong>Adres:</strong> @Model.Address</p>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Evet, Sil</button>
+        <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    </form>
+</div>
