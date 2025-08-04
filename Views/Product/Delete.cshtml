@@ -1,0 +1,24 @@
+﻿@model EFaturaApp.Models.Product
+
+@{
+    ViewData["Title"] = "Ürün Sil";
+}
+
+<div class="container mt-4">
+    <h2>Ürün Sil</h2>
+
+    <h4>Bu ürünü silmek istediğinize emin misiniz?</h4>
+    <div class="card p-3 mt-3">
+        <p><strong>Ürün Adı:</strong> @(string.IsNullOrEmpty(Model.Name) ? "-" : Model.Name)</p>
+        <p><strong>Birim:</strong> @(string.IsNullOrEmpty(Model.Unit) ? "-" : Model.Unit)</p>
+        <p><strong>Birim Fiyat:</strong> @(Model.UnitPrice.HasValue? Model.UnitPrice.Value.ToString("N2") : "-")</p>
+        <p><strong>Para Birimi:</strong> @(string.IsNullOrEmpty(Model.Currency) ? "-" : Model.Currency)</p>
+        <p><strong>Kayıt Tarihi:</strong> @(Model.CreateDate.HasValue? Model.CreateDate.Value.ToShortDateString() : "-")</p>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Evet, Sil</button>
+        <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    </form>
+</div>
