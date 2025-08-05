@@ -1,0 +1,38 @@
+﻿@model EFaturaApp.Models.Shipment
+
+@{
+    ViewData["Title"] = "İrsaliye Detayı";
+}
+
+<h2>İrsaliye Detayı</h2>
+
+<div class="card p-3">
+    <p><strong>İrsaliye No:</strong> @Model.ShipmentNo</p>
+    <p><strong>Müşteri:</strong> @Model.RecieverCustomer?.CompanyName</p>
+    <p><strong>Gönderen Kullanıcı:</strong> @Model.SenderUser?.Username</p>
+    <p><strong>İrsaliye Tarihi:</strong> @Model.ShipmentDate.ToString("dd.MM.yyyy")</p>
+    <p><strong>Oluşturulma Tarihi:</strong> @Model.CreateDate.ToString("dd.MM.yyyy HH:mm")</p>
+</div>
+
+<h4 class="mt-4">Ürünler</h4>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Ürün Adı</th>
+            <th>Miktar</th>
+            <th>Birim</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.ShipmentItems)
+        {
+            <tr>
+                <td>@item.Product?.Name</td>
+                <td>@item.Quantity</td>
+                <td>@item.Unit</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Index" class="btn btn-secondary">Geri Dön</a>

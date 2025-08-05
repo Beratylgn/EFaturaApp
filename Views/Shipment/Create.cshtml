@@ -1,0 +1,120 @@
+﻿@model EFaturaApp.Models.Shipment
+
+@{
+    ViewData["Title"] = "Yeni İrsaliye";
+    var customers = ViewBag.Customers as List<EFaturaApp.Models.Customer>;
+    var products = ViewBag.Products as List<EFaturaApp.Models.Product>;
+}
+
+<h2>Yeni İrsaliye Oluştur</h2>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group mb-3">
+        <label>Müşteri</label>
+        <select asp-for="RecieverCustomerId" class="form-control" required>
+            <option value="">-- Müşteri Seçin --</option>
+            @foreach (var customer in customers)
+            {
+                <option value="@customer.Id">@customer.CompanyName</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group mb-3">
+        <label>İrsaliye Tarihi</label>
+        <input asp-for="ShipmentDate" type="date" class="form-control" required />
+    </div>
+
+    <h4>Ürünler</h4>
+    <table class="table table-bordered" id="productTable">
+        <thead>
+            <tr>
+                <th>Ürün</th>
+                <th>Miktar</th>
+                <th>Birim</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="productRows">
+            <tr>
+                <td>
+                    <select name="ShipmentItems[0].ProductId" class="form-control" onchange="updateUnit(this)">
+                        @foreach (var product in products)
+                        {
+                            <option value="@product.Id" data-unit="@product.Unit">@product.Name</option>
+                        }
+                    </select>
+                </td>
+                <td>
+                    <input name="ShipmentItems[0].Quantity" type="number" class="form-control" value="1" min="1" />
+                </td>
+                <td>
+                    <input type="hidden" name="ShipmentItems[0].Unit" value="@products.FirstOrDefault()?.Unit" />
+                    <span class="unit-label">@products.FirstOrDefault()?.Unit</span>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger" onclick="removeRow(this)">Sil</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button type="button" class="btn btn-secondary mb-3" onclick="addRow()">+ Ürün Ekle</button>
+    <br />
+
+    <button type="submit" class="btn btn-success">İrsaliyeyi Kaydet</button>
+    <a asp-action="Index" class="btn btn-secondary">İptal</a>
+</form>
+
+@section Scripts {
+    <script>
+        let rowIndex = 1;
+
+        function addRow() {
+            var products = `
+                @foreach (var product in products)
+                {
+                        <option value="@product.Id" data-unit="@product.Unit">@product.Name</option>
+                }
+            `;
+
+            var firstUnit = "@products.FirstOrDefault()?.Unit";
+
+            var newRow = `
+                <tr>
+                    <td>
+                        <select name="ShipmentItems[${rowIndex}].ProductId" class="form-control" onchange="updateUnit(this)">
+                            ${products}
+                        </select>
+                    </td>
+                    <td>
+                        <input name="ShipmentItems[${rowIndex}].Quantity" type="number" class="form-control" value="1" min="1" />
+                    </td>
+                    <td>
+                        <input type="hidden" name="ShipmentItems[${rowIndex}].Unit" value="${firstUnit}" />
+                        <span class="unit-label">${firstUnit}</span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="removeRow(this)">Sil</button>
+                    </td>
+                </tr>
+            `;
+
+            document.getElementById("productRows").insertAdjacentHTML("beforeend", newRow);
+            rowIndex++;
+        }
+
+        function updateUnit(selectElement) {
+            var unit = selectElement.options[selectElement.selectedIndex].getAttribute("data-unit");
+            var row = selectElement.closest("tr");
+            row.querySelector(".unit-label").innerText = unit;
+            row.querySelector("input[type='hidden'][name*='.Unit']").value = unit;
+        }
+
+        function removeRow(btn) {
+            btn.closest("tr").remove();
+        }
+    </script>
+}

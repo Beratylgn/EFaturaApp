@@ -1,0 +1,30 @@
+﻿@model EFaturaApp.Models.Shipment
+
+@{
+    ViewData["Title"] = "İrsaliyeyi Sil";
+}
+
+<h2>İrsaliyeyi Sil</h2>
+
+<div class="alert alert-danger">
+    <strong>@Model.ShipmentNo</strong> numaralı irsaliyeyi silmek istediğinize emin misiniz?
+</div>
+
+<div>
+    <p><strong>Müşteri:</strong> @Model.RecieverCustomer?.CompanyName</p>
+    <p><strong>Tarih:</strong> @Model.ShipmentDate.ToString("dd.MM.yyyy")</p>
+</div>
+
+<h4>Ürünler</h4>
+<ul>
+    @foreach (var item in Model.ShipmentItems)
+    {
+        <li>@item.Product?.Name - @item.Quantity @item.Unit</li>
+    }
+</ul>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Evet, Sil</button>
+    <a asp-action="Index" class="btn btn-secondary">Vazgeç</a>
+</form>
