@@ -10,6 +10,12 @@ namespace EFaturaApp
         {
             var builder = WebApplication.CreateBuilder(args);
 
+
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
+            builder.Services.AddControllersWithViews();
+            
+
             // Add services to the container.
             builder.Services.AddControllersWithViews();
             builder.Services.AddDbContext<EFaturaContext>(options =>
