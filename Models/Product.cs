@@ -32,6 +32,8 @@ namespace EFaturaApp.Models
         [Column("STOCKCODE")]
         [Required]
         public string StockCode { get; set; }
+        public ICollection<InvoiceItem> InvoiceItems { get; set; }
+
 
 
     }

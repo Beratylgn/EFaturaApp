@@ -1,0 +1,88 @@
+﻿@model IEnumerable<EFaturaApp.Models.Invoice>
+
+@{
+    ViewData["Title"] = "Fatura Listesi";
+    var currentPage = ViewBag.CurrentPage as int? ?? 1;
+    var totalRecords = ViewBag.TotalRecords as int? ?? 0;
+    var pageSize = ViewBag.PageSize as int? ?? 20;
+    var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+}
+
+<h2>Fatura Listesi</h2>
+
+<form method="get" class="mb-4">
+    <div class="form-row">
+        <input type="text" name="searchString" value="@ViewBag.SearchString"
+               class="form-control" placeholder="Fatura No veya Müşteri Adı ile Ara"
+               style="width: 300px; display:inline-block; margin-right:10px;" />
+
+        <input type="date" name="startDate" value="@((ViewBag.StartDate as DateTime?)?.ToString("yyyy-MM-dd"))"
+               class="form-control" style="display:inline-block; width: 180px; margin-right:10px;" />
+        <input type="date" name="endDate" value="@((ViewBag.EndDate as DateTime?)?.ToString("yyyy-MM-dd"))"
+               class="form-control" style="display:inline-block; width: 180px; margin-right:10px;" />
+
+        <button type="submit" class="btn btn-primary">Filtrele</button>
+    </div>
+</form>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Fatura No</th>
+            <th>Müşteri</th>
+            <th>Fatura Tarihi</th>
+            <th>Toplam Tutar</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="5" class="text-center">Fatura bulunamadı.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var invoice in Model)
+            {
+                <tr>
+                    <td>@invoice.INVOICENO</td>
+                    <td>@invoice.ReceiverCustomer?.Name</td>
+                    <td>@invoice.INVOICEDATE?.ToString("dd/MM/yyyy")</td>
+                    <td>@String.Format("{0:C}", invoice.TOTALAMOUNT)</td>
+                    <td>
+                        <a href="@Url.Action("Details", "Invoices", new { id = invoice.ID })" class="btn btn-sm btn-info">Görüntüle</a>
+                        <a href="@Url.Action("Edit", "Invoices", new { id = invoice.ID })" class="btn btn-sm btn-warning">Düzenle</a>
+                        <a href="@Url.Action("Delete", "Invoices", new { id = invoice.ID })" class="btn btn-sm btn-danger">Sil</a>
+                        <a asp-action="ExportExcel" class="btn btn-secondary" style="margin-left:10px;">Excel İndir</a>
+                        <a asp-action="ExportPdf" class="btn btn-danger" style="margin-left:5px;">PDF </a>
+
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@if (totalPages > 1)
+{
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1, searchString = ViewBag.SearchString, startDate = ViewBag.StartDate?.ToString("yyyy-MM-dd"), endDate = ViewBag.EndDate?.ToString("yyyy-MM-dd") })">Önceki</a>
+            </li>
+
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                <li class="page-item @(i == currentPage ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new { page = i, searchString = ViewBag.SearchString, startDate = ViewBag.StartDate?.ToString("yyyy-MM-dd"), endDate = ViewBag.EndDate?.ToString("yyyy-MM-dd") })">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1, searchString = ViewBag.SearchString, startDate = ViewBag.StartDate?.ToString("yyyy-MM-dd"), endDate = ViewBag.EndDate?.ToString("yyyy-MM-dd") })">Sonraki</a>
+            </li>
+        </ul>
+    </nav>
+}

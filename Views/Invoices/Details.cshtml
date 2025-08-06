@@ -1,0 +1,40 @@
+﻿@model EFaturaApp.Models.Invoice
+@{
+    ViewData["Title"] = "Fatura Detayı";
+}
+
+<h2>Fatura Detayı</h2>
+
+<div>
+    <p><strong>Fatura No:</strong> @Model.INVOICENO</p>
+    <p><strong>Müşteri:</strong> @Model.ReceiverCustomer?.Name</p>
+    <p><strong>Fatura Tarihi:</strong> @Model.INVOICEDATE?.ToString("dd/MM/yyyy")</p>
+    <p><strong>Toplam Tutar:</strong> @String.Format("{0:C}", Model.TOTALAMOUNT)</p>
+</div>
+
+<h4>Fatura Kalemleri</h4>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Ürün</th>
+            <th>Miktar</th>
+            <th>Birim Fiyat</th>
+            <th>KDV (%)</th>
+            <th>Toplam</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.InvoiceItems)
+        {
+            <tr>
+                <td>@item.Product?.Name</td>
+                <td>@item.QUANTITY</td>
+                <td>@item.UNITPRICE</td>
+                <td>@item.TAXRATE</td>
+                <td>@(item.QUANTITY* item.UNITPRICE * (1 + item.TAXRATE / 100))</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Index" class="btn btn-secondary">Geri Dön</a>

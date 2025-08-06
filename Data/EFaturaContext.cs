@@ -14,6 +14,12 @@ namespace EFaturaApp.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<Shipment> Shipments { get; set; }
         public DbSet<ShipmentItem> ShipmentItems { get; set; }
+        public DbSet<Invoice> INVOICES { get; set; }
+        public DbSet<InvoiceItem> INVOICEITEMS { get; set; }
+        public DbSet<Customer> CUSTOMERS { get; set; }
+        public DbSet<Product> PRODUCT { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

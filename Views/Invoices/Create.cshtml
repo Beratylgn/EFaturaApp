@@ -1,0 +1,101 @@
+﻿@model EFaturaApp.Models.Invoice
+@{
+    ViewData["Title"] = "Fatura Oluştur";
+    var customers = ViewBag.Customers as List<EFaturaApp.Models.Customer>;
+    var products = ViewBag.Products as List<EFaturaApp.Models.Product>;
+}
+
+<h2>Yeni Fatura Oluştur</h2>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label>Müşteri</label>
+        <select asp-for="RECEIVERCUSTOMERID" class="form-control">
+            <option value="">Seçiniz</option>
+            @foreach (var c in customers)
+            {
+                <option value="@c.ID">@c.CompanyName</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Fatura Tarihi</label>
+        <input asp-for="INVOICEDATE" class="form-control" type="date" />
+    </div>
+
+    <hr />
+
+    <h4>Fatura Kalemleri</h4>
+    <table class="table" id="itemsTable">
+        <thead>
+            <tr>
+                <th>Ürün</th>
+                <th>Miktar</th>
+                <th>Birim Fiyat</th>
+                <th>KDV (%)</th>
+                <th>Toplam</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <button type="button" class="btn btn-success" onclick="addRow()">Kalem Ekle</button>
+
+    <hr />
+
+    <div class="form-group">
+        <label>Genel Toplam:</label>
+        <span id="grandTotal">0</span> ₺
+    </div>
+
+    <button type="submit" class="btn btn-primary">Kaydet</button>
+    <a asp-action="Index" class="btn btn-secondary">İptal</a>
+</form>
+
+@section Scripts {
+    <script>
+        var products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(products));
+
+        function addRow() {
+            var row = `<tr>
+                <td>
+                    <select name="items[0].PRODUCTID" class="form-control product-select">
+                        ${products.map(p => `<option value="${p.ID}" data-price="${p.Price}">${p.Name}</option>`).join('')}
+                    </select>
+                </td>
+                <td><input name="items[0].QUANTITY" type="number" class="form-control qty" value="1" min="1" /></td>
+                <td><input name="items[0].UNITPRICE" type="number" class="form-control price" step="0.01" /></td>
+                <td><input name="items[0].TAXRATE" type="number" class="form-control tax" value="18" step="1" /></td>
+                <td class="line-total">0</td>
+                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Sil</button></td>
+            </tr>`;
+            $("#itemsTable tbody").append(row);
+            updateTotals();
+        }
+
+        function removeRow(btn) {
+            $(btn).closest("tr").remove();
+            updateTotals();
+        }
+
+        $(document).on("input change", ".qty, .price, .tax", function () {
+            updateTotals();
+        });
+
+        function updateTotals() {
+            var grandTotal = 0;
+            $("#itemsTable tbody tr").each(function () {
+                var qty = parseFloat($(this).find(".qty").val()) || 0;
+                var price = parseFloat($(this).find(".price").val()) || 0;
+                var tax = parseFloat($(this).find(".tax").val()) || 0;
+                var total = qty * price * (1 + tax / 100);
+                $(this).find(".line-total").text(total.toFixed(2));
+                grandTotal += total;
+            });
+            $("#grandTotal").text(grandTotal.toFixed(2));
+        }
+    </script>
+}

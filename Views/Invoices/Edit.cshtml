@@ -1,0 +1,103 @@
+﻿@model EFaturaApp.Models.Invoice
+@{
+    ViewData["Title"] = "Fatura Düzenle";
+    var customers = ViewBag.Customers as List<EFaturaApp.Models.Customer>;
+    var products = ViewBag.Products as List<EFaturaApp.Models.Product>;
+}
+
+<h2>Fatura Düzenle</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="ID" />
+
+    <div class="form-group">
+        <label>Müşteri</label>
+        <select asp-for="RECEIVERCUSTOMERID" class="form-control">
+            @foreach (var c in customers)
+            {
+                <select asp-for="RECEIVERCUSTOMERID" asp-items="@(new SelectList(ViewBag.Customers, "ID", "Name"))" class="form-control"></select>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Fatura Tarihi</label>
+        <input asp-for="INVOICEDATE" class="form-control" type="date" />
+    </div>
+
+    <hr />
+
+    <h4>Fatura Kalemleri</h4>
+    <table class="table" id="itemsTable">
+        <thead>
+            <tr>
+                <th>Ürün</th>
+                <th>Miktar</th>
+                <th>Birim Fiyat</th>
+                <th>KDV (%)</th>
+                <th>Toplam</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.InvoiceItems)
+            {
+                <tr>
+                    <td>
+                        <select name="items[0].PRODUCTID" class="form-control product-select">
+                            @foreach (var p in products)
+                            {
+                                <select asp-for="RECEIVERCUSTOMERID" asp-items="@(new SelectList(ViewBag.Customers, "ID", "Name"))" class="form-control"></select>
+                            }
+                        </select>
+                    </td>
+                    <td><input name="items[0].QUANTITY" type="number" class="form-control qty" value="@item.QUANTITY" /></td>
+                    <td><input name="items[0].UNITPRICE" type="number" class="form-control price" value="@item.UNITPRICE" step="0.01" /></td>
+                    <td><input name="items[0].TAXRATE" type="number" class="form-control tax" value="@item.TAXRATE" /></td>
+                    <td class="line-total">0</td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Sil</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="button" class="btn btn-success" onclick="addRow()">Kalem Ekle</button>
+
+    <hr />
+
+    <div class="form-group">
+        <label>Genel Toplam:</label>
+        <span id="grandTotal">0</span> ₺
+    </div>
+
+    <button type="submit" class="btn btn-primary">Kaydet</button>
+    <a asp-action="Index" class="btn btn-secondary">İptal</a>
+</form>
+
+@section Scripts {
+    <script>
+        function removeRow(btn) {
+            $(btn).closest("tr").remove();
+            updateTotals();
+        }
+
+        $(document).on("input change", ".qty, .price, .tax", function () {
+            updateTotals();
+        });
+
+        function updateTotals() {
+            var grandTotal = 0;
+            $("#itemsTable tbody tr").each(function () {
+                var qty = parseFloat($(this).find(".qty").val()) || 0;
+                var price = parseFloat($(this).find(".price").val()) || 0;
+                var tax = parseFloat($(this).find(".tax").val()) || 0;
+                var total = qty * price * (1 + tax / 100);
+                $(this).find(".line-total").text(total.toFixed(2));
+                grandTotal += total;
+            });
+            $("#grandTotal").text(grandTotal.toFixed(2));
+        }
+
+        updateTotals();
+    </script>
+}

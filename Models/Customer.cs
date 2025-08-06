@@ -25,5 +25,11 @@ namespace EFaturaApp.Models
 
         [Column("CREATEDAT")]
         public DateTime CreatedAt { get; set; }
+
+        public ICollection<Invoice> Invoices { get; set; }
+        public int ID => Id;
+
+        [NotMapped]
+        public string Name => CompanyName;
     }
 }
