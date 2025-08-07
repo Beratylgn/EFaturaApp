@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -34,9 +35,10 @@ namespace EFaturaApp.Models
         public DateTime? CREATEDATE { get; set; }
 
         // Navigation
+        [ValidateNever]
+        public  Customer ReceiverCustomer { get; set; } 
 
-        public required Customer ReceiverCustomer { get; set; }  // doğru yazılış
-
+        [ValidateNever]
         public ICollection<InvoiceItem> InvoiceItems { get; set; }
     }
 }

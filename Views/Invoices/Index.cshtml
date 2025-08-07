@@ -10,6 +10,8 @@
 
 <h2>Fatura Listesi</h2>
 
+<a asp-action="Create" class="btn btn-success mb-3">+ Yeni Fatura Oluştur</a>
+
 <form method="get" class="mb-4">
     <div class="form-row">
         <input type="text" name="searchString" value="@ViewBag.SearchString"
@@ -57,7 +59,6 @@
                         <a href="@Url.Action("Delete", "Invoices", new { id = invoice.ID })" class="btn btn-sm btn-danger">Sil</a>
                         <a asp-action="ExportExcel" class="btn btn-secondary" style="margin-left:10px;">Excel İndir</a>
                         <a asp-action="ExportPdf" class="btn btn-danger" style="margin-left:5px;">PDF </a>
-
                     </td>
                 </tr>
             }

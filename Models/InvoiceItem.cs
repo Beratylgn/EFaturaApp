@@ -1,30 +1,31 @@
-﻿using EFaturaApp.Models;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EFaturaApp.Models
 {
+    [Table("INVOICESITEMS")]
     public class InvoiceItem
     {
         [Key]
         public int ID { get; set; }
 
-        [Required]
         public int INVOICEID { get; set; }
 
-        [Required]
         public int PRODUCTID { get; set; }
 
-        [Required]
         public int QUANTITY { get; set; }
 
-        [Required]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal UNITPRICE { get; set; }
 
-        [Required]
         public int TAXRATE { get; set; }
 
-        // Navigation Properties
-        public Invoice Invoice { get; set; }
-        public Product Product { get; set; }
+        // Navigation properties
+        [ValidateNever]
+        public Invoice? Invoice { get; set; }
+
+        [NotMapped] // EF bu property üzerinden tekrar ProductId üretmesin diye
+        public Product? Product { get; set; }
     }
 }

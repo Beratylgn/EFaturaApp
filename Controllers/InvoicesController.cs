@@ -14,6 +14,13 @@ namespace EFaturaApp.Controllers
         {
             _context = context;
         }
+        [HttpGet]
+        public IActionResult Create()
+        {
+            ViewBag.Customers = _context.CUSTOMERS.ToList();
+            ViewBag.Products = _context.PRODUCT.ToList();
+            return View();
+        }
 
         public async Task<IActionResult> Index(string searchString, DateTime? startDate, DateTime? endDate, int page = 1)
         {
@@ -38,12 +45,6 @@ namespace EFaturaApp.Controllers
                 query = query.Where(i => i.INVOICEDATE <= endDate.Value);
             }
 
-            // SQL çıktısını görmek için Debug penceresine yazdır
-            System.Diagnostics.Debug.WriteLine("=== EF SQL QUERY ===");
-            System.Diagnostics.Debug.WriteLine(query.ToQueryString());
-            System.Diagnostics.Debug.WriteLine("DB Connection: " + _context.Database.GetDbConnection().ConnectionString);
-            System.Diagnostics.Debug.WriteLine("====================");
-
             // Toplam kayıt sayısı
             var totalRecords = await query.CountAsync();
 
@@ -65,45 +66,62 @@ namespace EFaturaApp.Controllers
             return View(invoices);
         }
 
-
-
-
-        // GET: Invoices/Create
-        public IActionResult Create()
-        {
-            ViewBag.Customers = _context.CUSTOMERS.ToList();
-            ViewBag.Products = _context.PRODUCT.ToList();
-            return View();
-        }
-
         // POST: Invoices/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Invoice invoice, List<InvoiceItem> items)
         {
+            Console.WriteLine("🔥🔥🔥 Create POST METODU ÇALIŞTI 🔥🔥🔥");
+
+            // Tüm form verilerini logla
+            Console.WriteLine("🔎 Request verileri:");
+            foreach (var key in Request.Form.Keys)
+            {
+                Console.WriteLine($"📝 {key} = {Request.Form[key]}");
+            }
+
+            Console.WriteLine($"Fatura No: {invoice.INVOICENO}");
+            Console.WriteLine($"Fatura Tarihi: {invoice.INVOICEDATE}");
+            Console.WriteLine($"Müşteri ID: {invoice.RECEIVERCUSTOMERID}");
+            Console.WriteLine($"Kalem Sayısı: {items?.Count}");
+
             if (ModelState.IsValid)
             {
                 invoice.CREATEDATE = DateTime.Now;
-                invoice.TOTALAMOUNT = items.Sum(i => i.QUANTITY * i.UNITPRICE * (1 + (i.TAXRATE / 100)));
+                invoice.TOTALAMOUNT = items.Sum(i => i.QUANTITY * i.UNITPRICE * (1 + (i.TAXRATE / 100m)));
 
                 _context.INVOICES.Add(invoice);
                 _context.SaveChanges();
 
-                // Fatura ID'yi aldıktan sonra itemları kaydet
                 foreach (var item in items)
                 {
                     item.INVOICEID = invoice.ID;
-                    _context.INVOICEITEMS.Add(item);
+                    _context.INVOICESITEMS.Add(item);
                 }
-                _context.SaveChanges();
 
+                _context.SaveChanges();
+                Console.WriteLine("✅ Kayıt başarıyla tamamlandı.");
                 return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                Console.WriteLine("❌ ModelState geçersiz.");
+                foreach (var key in ModelState.Keys)
+                {
+                    var state = ModelState[key];
+                    foreach (var error in state.Errors)
+                    {
+                        Console.WriteLine($"🔴 {key}: {error.ErrorMessage}");
+                    }
+                }
             }
 
             ViewBag.Customers = _context.CUSTOMERS.ToList();
             ViewBag.Products = _context.PRODUCT.ToList();
             return View(invoice);
         }
+    
+
 
 
         // GET: Invoices/Edit/5
@@ -135,14 +153,14 @@ namespace EFaturaApp.Controllers
                     _context.Update(invoice);
 
                     // Eski kalemleri sil
-                    var oldItems = _context.INVOICEITEMS.Where(x => x.INVOICEID == invoice.ID).ToList();
-                    _context.INVOICEITEMS.RemoveRange(oldItems);
+                    var oldItems = _context.INVOICESITEMS.Where(x => x.INVOICEID == invoice.ID).ToList();
+                    _context.INVOICESITEMS.RemoveRange(oldItems);
 
                     // Yeni kalemleri ekle
                     foreach (var item in items)
                     {
                         item.INVOICEID = invoice.ID;
-                        _context.INVOICEITEMS.Add(item);
+                        _context.INVOICESITEMS.Add(item);
                     }
 
                     _context.SaveChanges();
@@ -190,8 +208,8 @@ namespace EFaturaApp.Controllers
             var invoice = _context.INVOICES.Find(id);
             if (invoice != null)
             {
-                var items = _context.INVOICEITEMS.Where(ii => ii.INVOICEID == id);
-                _context.INVOICEITEMS.RemoveRange(items);
+                var items = _context.INVOICESITEMS.Where(ii => ii.INVOICEID == id);
+                _context.INVOICESITEMS.RemoveRange(items);
                 _context.INVOICES.Remove(invoice);
                 _context.SaveChanges();
             }

@@ -1,16 +1,25 @@
 ﻿@model EFaturaApp.Models.Invoice
 @{
-    ViewData["Title"] = "Fatura Oluştur";
+    ViewData["Title"] = "Yeni Fatura Oluştur";
     var customers = ViewBag.Customers as List<EFaturaApp.Models.Customer>;
     var products = ViewBag.Products as List<EFaturaApp.Models.Product>;
+    var generatedInvoiceNo = "INV-" + DateTime.Now.ToString("yyyyMMdd") + "-" + new Random().Next(1000, 9999);
 }
 
 <h2>Yeni Fatura Oluştur</h2>
 
-<form asp-action="Create" method="post">
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<form asp-action="Create" method="post" id="invoiceForm">
+    @Html.AntiForgeryToken()
+    <div class="form-group">
+        <label>Fatura No</label>
+        <input asp-for="INVOICENO" class="form-control" value="@generatedInvoiceNo" readonly />
+    </div>
+
     <div class="form-group">
         <label>Müşteri</label>
-        <select asp-for="RECEIVERCUSTOMERID" class="form-control">
+        <select asp-for="RECEIVERCUSTOMERID" class="form-control" required>
             <option value="">Seçiniz</option>
             @foreach (var c in customers)
             {
@@ -21,7 +30,16 @@
 
     <div class="form-group">
         <label>Fatura Tarihi</label>
-        <input asp-for="INVOICEDATE" class="form-control" type="date" />
+        <input asp-for="INVOICEDATE" class="form-control" type="date" required />
+    </div>
+
+    <div class="form-group mt-3" style="width: 250px;">
+        <label>Para Birimi</label>
+        <select id="currencySelector" class="form-control">
+            <option value="TRY">₺ Türk Lirası</option>
+            <option value="USD">$ Amerikan Doları</option>
+            <option value="EUR">€ Euro</option>
+        </select>
     </div>
 
     <hr />
@@ -38,52 +56,113 @@
                 <th></th>
             </tr>
         </thead>
-        <tbody>
-        </tbody>
+        <tbody></tbody>
     </table>
 
-    <button type="button" class="btn btn-success" onclick="addRow()">Kalem Ekle</button>
+    <button type="button" class="btn btn-success mb-3" onclick="addRow()">Kalem Ekle</button>
 
-    <hr />
-
-    <div class="form-group">
-        <label>Genel Toplam:</label>
-        <span id="grandTotal">0</span> ₺
+    <div class="alert alert-secondary text-end fw-bold fs-5">
+        Genel Toplam: <span id="grandTotal">0,00</span>
     </div>
 
-    <button type="submit" class="btn btn-primary">Kaydet</button>
-    <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+        <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    </div>
 </form>
 
 @section Scripts {
     <script>
         var products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(products));
+        var itemIndex = 0;
+        var invoiceCurrency = "TRY";
+
+        const currencySymbols = {
+            "TRY": "₺",
+            "USD": "$",
+            "EUR": "€"
+        };
+
+        const currencyRates = {
+            "TRY": { "TRY": 1, "USD": 1 / 28.5, "EUR": 1 / 31.25 },
+            "USD": { "TRY": 28.5, "USD": 1, "EUR": 0.91 },
+            "EUR": { "TRY": 31.25, "USD": 1.1, "EUR": 1 }
+        };
+
+        $(document).ready(function () {
+            addRow();
+        });
+
+        $("#currencySelector").on("change", function () {
+            invoiceCurrency = $(this).val();
+            updateAllPrices();
+        });
 
         function addRow() {
             var row = `<tr>
+                        <td>
+                <select name="items[${itemIndex}].PRODUCTID" class="form-control product-select">
+                    ${products.map((pr, index) =>
+                        `<option value="${pr.Id}" data-unit="${pr.Unit}" data-price="${pr.UnitPrice}" 
+                        data-currency="${pr.Currency}" ${index === 0 ? "selected" : ""}>${pr.Name}</option>`
+                    ).join('')}
+                  </select>
+
+
+                        </td>
                 <td>
-                    <select name="items[0].PRODUCTID" class="form-control product-select">
-                        ${products.map(p => `<option value="${p.ID}" data-price="${p.Price}">${p.Name}</option>`).join('')}
-                    </select>
+                    <div class="input-group">
+                        <input name="items[${itemIndex}].QUANTITY" type="number" class="form-control qty" value="1" min="1" />
+                        <span class="input-group-text unit-label"></span>
+                    </div>
                 </td>
-                <td><input name="items[0].QUANTITY" type="number" class="form-control qty" value="1" min="1" /></td>
-                <td><input name="items[0].UNITPRICE" type="number" class="form-control price" step="0.01" /></td>
-                <td><input name="items[0].TAXRATE" type="number" class="form-control tax" value="18" step="1" /></td>
-                <td class="line-total">0</td>
+                <td>
+                    <div class="input-group">
+                        <input name="items[${itemIndex}].UNITPRICE" type="number" class="form-control price" step="0.01" />
+                        <span class="input-group-text currency-symbol"></span>
+                    </div>
+                    <small class="text-muted original-price-info"></small>
+                </td>
+                <td><input name="items[${itemIndex}].TAXRATE" type="number" class="form-control tax" value="18" step="1" /></td>
+                <td class="line-total">0,00</td>
                 <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">Sil</button></td>
             </tr>`;
             $("#itemsTable tbody").append(row);
-            updateTotals();
+            itemIndex++;
+            updateAllPrices();
         }
 
-        function removeRow(btn) {
-            $(btn).closest("tr").remove();
-            updateTotals();
-        }
+        $(document).on("change", ".product-select", function () {
+            updateAllPrices();
+        });
 
         $(document).on("input change", ".qty, .price, .tax", function () {
             updateTotals();
         });
+
+        function updateAllPrices() {
+            $("#itemsTable tbody tr").each(function () {
+                var row = $(this);
+                var selected = row.find(".product-select option:selected");
+                var price = parseFloat(selected.data("price"));
+                var unit = selected.data("unit");
+                var productCurrency = selected.data("currency");
+
+                var converted = price * currencyRates[productCurrency][invoiceCurrency];
+                var symbol = currencySymbols[invoiceCurrency];
+
+                row.find(".price").val(converted.toFixed(2));
+                row.find(".unit-label").text(unit);
+                row.find(".currency-symbol").text(symbol);
+
+                if (productCurrency !== invoiceCurrency) {
+                    row.find(".original-price-info").text("(" + price.toFixed(2) + " " + currencySymbols[productCurrency] + ")");
+                } else {
+                    row.find(".original-price-info").text("");
+                }
+            });
+            updateTotals();
+        }
 
         function updateTotals() {
             var grandTotal = 0;
@@ -92,10 +171,15 @@
                 var price = parseFloat($(this).find(".price").val()) || 0;
                 var tax = parseFloat($(this).find(".tax").val()) || 0;
                 var total = qty * price * (1 + tax / 100);
-                $(this).find(".line-total").text(total.toFixed(2));
+                $(this).find(".line-total").text(total.toFixed(2) + " " + currencySymbols[invoiceCurrency]);
                 grandTotal += total;
             });
-            $("#grandTotal").text(grandTotal.toFixed(2));
+            $("#grandTotal").text(grandTotal.toFixed(2) + " " + currencySymbols[invoiceCurrency]);
+        }
+
+        function removeRow(btn) {
+            $(btn).closest("tr").remove();
+            updateTotals();
         }
     </script>
 }

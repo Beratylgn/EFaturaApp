@@ -15,17 +15,14 @@ namespace EFaturaApp.Data
         public DbSet<Shipment> Shipments { get; set; }
         public DbSet<ShipmentItem> ShipmentItems { get; set; }
         public DbSet<Invoice> INVOICES { get; set; }
-        public DbSet<InvoiceItem> INVOICEITEMS { get; set; }
+        public DbSet<InvoiceItem> INVOICESITEMS { get; set; }
         public DbSet<Customer> CUSTOMERS { get; set; }
         public DbSet<Product> PRODUCT { get; set; }
-
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // SHIPMENTS tablosu
             modelBuilder.Entity<Shipment>(entity =>
             {
                 entity.ToTable("SHIPMENTS");
@@ -48,7 +45,6 @@ namespace EFaturaApp.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // SHIPMENTITEMS tablosu
             modelBuilder.Entity<ShipmentItem>(entity =>
             {
                 entity.ToTable("SHIPMENTITEMS");
@@ -67,6 +63,27 @@ namespace EFaturaApp.Data
                       .WithMany()
                       .HasForeignKey(si => si.ProductId);
             });
+
+            modelBuilder.Entity<InvoiceItem>(entity =>
+            {
+                entity.ToTable("INVOICESITEMS");
+
+                entity.Property(i => i.ID).HasColumnName("ID");
+                entity.Property(i => i.INVOICEID).HasColumnName("INVOICEID");
+                entity.Property(i => i.PRODUCTID).HasColumnName("PRODUCTID");
+                entity.Property(i => i.QUANTITY).HasColumnName("QUANTITY");
+                entity.Property(i => i.UNITPRICE).HasColumnName("UNITPRICE");
+                entity.Property(i => i.TAXRATE).HasColumnName("TAXRATE");
+
+                entity.HasOne(i => i.Invoice)
+                      .WithMany(i => i.InvoiceItems)
+                      .HasForeignKey(i => i.INVOICEID);
+
+                entity.HasOne(i => i.Product)
+                      .WithMany()
+                      .HasForeignKey(i => i.PRODUCTID);
+            });
         }
     }
 }
+
