@@ -1,0 +1,141 @@
+﻿@model EFaturaApp.Models.Shipment
+
+@{
+    ViewData["Title"] = "İrsaliye Düzenle";
+    var customers = ViewBag.Customers as List<EFaturaApp.Models.Customer>;
+    var products = ViewBag.Products as List<EFaturaApp.Models.Product>;
+}
+
+<h2>İrsaliye Düzenle</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group mb-3">
+        <label>Müşteri</label>
+        <select asp-for="RecieverCustomerId" class="form-control">
+            @foreach (var customer in customers)
+            {
+                <option value="@customer.Id" selected="@(customer.Id == Model.RecieverCustomerId)">
+                    @customer.CompanyName
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group mb-3">
+        <label>İrsaliye Tarihi</label>
+        <input asp-for="ShipmentDate" type="date" class="form-control" />
+    </div>
+
+    <h4>Ürünler</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Ürün</th>
+                <th>Miktar</th>
+                <th>Birim</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="productRows">
+            @{
+                var items = Model.ShipmentItems.ToList();
+            }
+            @for (int i = 0; i < items.Count; i++)
+            {
+                <tr>
+                    <td>
+                        <select name="ShipmentItems[@i].ProductId" class="form-control" onchange="updateUnit(this)">
+                            @foreach (var product in products)
+                            {
+                                <option value="@product.Id" data-unit="@product.Unit"
+                                        selected="@(product.Id == items[i].ProductId)">
+                                    @product.Name
+                                </option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <input name="ShipmentItems[@i].Quantity" value="@items[i].Quantity" type="number" class="form-control" />
+                    </td>
+                    <td>
+                        <input type="hidden" name="ShipmentItems[@i].Unit" value="@items[i].Unit" />
+                        <span class="unit-label">@items[i].Unit</span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="removeRow(this)">Sil</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="button" class="btn btn-secondary mb-3" onclick="addRow()">+ Ürün Ekle</button>
+    <br />
+
+    <button type="submit" class="btn btn-success">Kaydet</button>
+    <a asp-action="Index" class="btn btn-secondary">İptal</a>
+</form>
+
+@section Scripts {
+    <script>
+        let rowIndex = @Model.ShipmentItems.Count();
+
+        function addRow() {
+            var products = `
+                @foreach (var product in products)
+                {
+                        <option value="@product.Id" data-unit="@product.Unit">@product.Name</option>
+                }
+            `;
+
+            var newRow = `
+                <tr>
+                    <td>
+                        <select name="ShipmentItems[${rowIndex}].ProductId" class="form-control" onchange="updateUnit(this)">
+                            ${products}
+                        </select>
+                    </td>
+                    <td>
+                        <input name="ShipmentItems[${rowIndex}].Quantity" type="number" class="form-control" value="1" min="1" />
+                    </td>
+                    <td>
+                        <input type="hidden" name="ShipmentItems[${rowIndex}].Unit" value="Adet" />
+                        <span class="unit-label">Adet</span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="removeRow(this)">Sil</button>
+                    </td>
+                </tr>
+            `;
+
+            document.getElementById("productRows").insertAdjacentHTML("beforeend", newRow);
+            rowIndex++;
+        }
+
+        function updateUnit(selectElement) {
+            var unit = selectElement.options[selectElement.selectedIndex].getAttribute("data-unit");
+            var row = selectElement.closest("tr");
+            row.querySelector(".unit-label").innerText = unit;
+            row.querySelector("input[type='hidden'][name*='.Unit']").value = unit;
+        }
+
+                function removeRow(btn) {
+            btn.closest("tr").remove();
+
+            // Indexleri baştan düzenle
+            let rows = document.querySelectorAll("#productRows tr");
+            rows.forEach((row, index) => {
+                row.querySelectorAll("select, input").forEach(input => {
+                    if (input.name.includes("ShipmentItems")) {
+                        input.name = input.name.replace(/\[\d+\]/, `[${index}]`);
+                    }
+                });
+            });
+
+            // rowIndex'i güncelle
+            rowIndex = rows.length;
+        }
+    </script>
+}

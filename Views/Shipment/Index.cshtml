@@ -1,0 +1,132 @@
+﻿@model IEnumerable<EFaturaApp.Models.Shipment>
+
+@{
+    ViewData["Title"] = "İrsaliyeler";
+}
+
+<h2>İrsaliyeler</h2>
+
+<form asp-action="Index" method="get" class="mb-3 row g-2">
+    <div class="col-md-3">
+        <input type="text" name="searchString" class="form-control"
+               placeholder="İrsaliye No / Müşteri / Kullanıcı"
+               value="@ViewData["searchString"]" />
+    </div>
+    <div class="col-md-2">
+        <input type="date" name="startDate" class="form-control"
+               value="@ViewData["startDate"]" />
+    </div>
+    <div class="col-md-2">
+        <input type="date" name="endDate" class="form-control"
+               value="@ViewData["endDate"]" />
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Ara</button>
+    </div>
+    <div class="col-md-2">
+        <a asp-action="Index" class="btn btn-secondary w-100">Temizle</a>
+    </div>
+</form>
+
+@if (ViewBag.TotalCount != null)
+{
+    <p><strong>Toplam @ViewBag.TotalCount kayıt bulundu.</strong></p>
+}
+
+<a class="btn btn-success mb-3" asp-action="Create">+ Yeni İrsaliye</a>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>İrsaliye No</th>
+            <th>Ürünler</th>
+            <th>Gönderen Kullanıcı</th>
+            <th>Müşteri</th>
+            <th>Tarih</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var shipment in Model)
+            {
+                <tr>
+                    <td>@shipment.ShipmentNo</td>
+                    <td>
+                        <ul>
+                            @foreach (var item in shipment.ShipmentItems)
+                            {
+                                <li>@item.Product?.Name - @item.Quantity @item.Unit</li>
+                            }
+                        </ul>
+                    </td>
+                    <td>@shipment.SenderUser?.Username</td>
+                    <td>@shipment.RecieverCustomer?.CompanyName</td>
+                    <td>@shipment.ShipmentDate.ToString("dd.MM.yyyy")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@shipment.Id" class="btn btn-info btn-sm">Detay</a>
+                        <a asp-action="Edit" asp-route-id="@shipment.Id" class="btn btn-warning btn-sm">Düzenle</a>
+                        <a asp-action="Delete" asp-route-id="@shipment.Id" class="btn btn-danger btn-sm">Sil</a>
+                        <a asp-action="ExportToPdf" asp-route-id="@shipment.Id" class="btn btn-secondary btn-sm">PDF</a>
+                        <a asp-action="ExportToExcel" asp-route-id="@shipment.Id" class="btn btn-success btn-sm">Excel</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="6" class="text-center text-muted">Henüz kayıtlı irsaliye bulunmamaktadır.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@{
+    int totalPages = (int)Math.Ceiling((double)ViewBag.TotalCount / ViewBag.PageSize);
+    int currentPage = ViewBag.Page;
+}
+
+@if (totalPages > 1)
+{
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-page="@(currentPage - 1)"
+                   asp-route-searchString="@ViewData["searchString"]"
+                   asp-route-startDate="@ViewData["startDate"]"
+                   asp-route-endDate="@ViewData["endDate"]">
+                    Önceki
+                </a>
+            </li>
+
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                <li class="page-item @(i == currentPage ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="@i"
+                       asp-route-searchString="@ViewData["searchString"]"
+                       asp-route-startDate="@ViewData["startDate"]"
+                       asp-route-endDate="@ViewData["endDate"]">
+                        @i
+                    </a>
+                </li>
+            }
+
+            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-page="@(currentPage + 1)"
+                   asp-route-searchString="@ViewData["searchString"]"
+                   asp-route-startDate="@ViewData["startDate"]"
+                   asp-route-endDate="@ViewData["endDate"]">
+                    Sonraki
+                </a>
+            </li>
+        </ul>
+    </nav>
+}

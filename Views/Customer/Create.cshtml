@@ -1,0 +1,29 @@
+﻿@model EFaturaApp.Models.Customer
+
+@{
+    ViewData["Title"] = "Yeni Müşteri Ekle";
+}
+
+<div class="container mt-4">
+    <h2>Yeni Müşteri Ekle</h2>
+    <form asp-action="Create" method="post" class="w-50">
+        <div class="mb-3">
+            <label class="form-label">Firma Adı</label>
+            <input asp-for="CompanyName" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Vergi No</label>
+            <input asp-for="TaxNumber" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Adres</label>
+            <input asp-for="Address" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">E-mail</label>
+            <input asp-for="Email" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-success">Kaydet</button>
+        <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    </form>
+</div>
