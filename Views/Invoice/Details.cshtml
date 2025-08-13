@@ -1,0 +1,51 @@
+﻿@model EFaturaApp.Models.Invoice
+@{
+    ViewData["Title"] = "Fatura Detayı";
+    Func<string, string> sym = (cur) => cur == "USD" ? "$" : (cur == "EUR" ? "€" : "₺");
+}
+
+<h2>Fatura Detayı</h2>
+
+<div class="card mb-3">
+    <div class="card-body row g-3">
+        <div class="col-md-4"><strong>Fatura No:</strong> @Model.InvoiceNo</div>
+        <div class="col-md-4"><strong>Tarih:</strong> @Model.InvoiceDate?.ToString("dd.MM.yyyy")</div>
+        <div class="col-md-4"><strong>Müşteri:</strong> @Model.ReceiverCustomer?.CompanyName</div>
+        <div class="col-md-4"><strong>Toplam Tutar:</strong> @Model.TotalAmount?.ToString("N2") @sym(Model.Currency)</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h5>Kalemler</h5>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Ürün</th>
+                    <th>Miktar</th>
+                    <th>Birim Fiyat</th>
+                    <th>KDV (%)</th>
+                    <th>Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    var net = item.UnitPrice * item.Quantity;
+                    var tax = net * item.TaxRate / 100m;
+                    <tr>
+                        <td>@item.Product?.Name</td>
+                        <td class="text-end">@item.Quantity @item.Product?.Unit</td>
+                        <td class="text-end">@item.UnitPrice.ToString("N2")</td>
+                        <td class="text-end">@item.TaxRate</td>
+                        <td class="text-end">@((net + tax).ToString("N2")) @sym(Model.Currency)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Geri</a>
+</div>

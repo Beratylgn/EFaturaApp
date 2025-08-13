@@ -1,0 +1,417 @@
+﻿@model EFaturaApp.Models.ViewModels.InvoiceCreateViewModel
+@{
+    ViewData["Title"] = "Yeni Fatura";
+}
+
+<h2 class="mb-4">Yeni Fatura</h2>
+
+<style>
+    #itemsTable {
+        table-layout: fixed;
+    }
+
+        #itemsTable col.col-product {
+            width: 28%;
+        }
+
+        #itemsTable col.col-qty {
+            width: 16%;
+        }
+
+        #itemsTable col.col-unitprice {
+            width: 18%;
+        }
+
+        #itemsTable col.col-original {
+            width: 14%;
+        }
+
+        #itemsTable col.col-tax {
+            width: 10%;
+        }
+
+        #itemsTable col.col-total {
+            width: 10%;
+        }
+
+        #itemsTable col.col-actions {
+            width: 4%;
+        }
+
+        #itemsTable .form-control {
+            height: 38px;
+        }
+
+        #itemsTable .input-group-text {
+            min-width: 56px;
+        }
+
+        #itemsTable td {
+            vertical-align: middle;
+        }
+
+    .line-total {
+        white-space: nowrap;
+    }
+</style>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="card mb-4">
+        <div class="card-body row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Fatura No</label>
+                <input asp-for="InvoiceNo" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Sevkiyat</label>
+                <select asp-for="ShipmentId" asp-items="Model.Shipments" class="form-select" id="shipmentSelect">
+                    <option value="">-</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Müşteri</label>
+                <select asp-for="ReceiverCustomerId" asp-items="Model.Customers" class="form-select">
+                    <option value="">-- Seçiniz --</option>
+                </select>
+                <span asp-validation-for="ReceiverCustomerId" class="text-danger"></span>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Para Birimi</label>
+                <select asp-for="Currency" asp-items="Model.Currencies" class="form-select" id="invoiceCurrency"></select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">Tarih</label>
+                <input asp-for="InvoiceDate" type="datetime-local" class="form-control" />
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="m-0">Kalemler</h5>
+                <div class="d-flex justify-content-end mb-2">
+                    <button id="btnAddRow" type="button" class="btn btn-primary btn-sm">
+                        Satır Ekle
+                    </button>
+                </div>
+
+                <script>
+                    (function() {
+                      var btn = document.getElementById('btnAddRow');
+                      if (!btn) return;
+                      btn.addEventListener('click', function (e) {
+                        // Projene dokunmadan yalnızca olay yayıyoruz
+                        document.dispatchEvent(new CustomEvent('addRowRequested'));
+                      });
+                    })();
+                </script>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle" id="itemsTable">
+                    <colgroup>
+                        <col class="col-product" />
+                        <col class="col-qty" />
+                        <col class="col-unitprice" />
+                        <col class="col-original" />
+                        <col class="col-tax" />
+                        <col class="col-total" />
+                        <col class="col-actions" />
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Ürün</th>
+                            <th>Miktar / Birim</th>
+                            <th>Birim Fiyat</th>
+                            <th>Orijinal Fiyat</th>
+                            <th>KDV (%)</th>
+                            <th>Tutar</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Items.Count; i++)
+                        {
+                            <tr>
+                                <td class="product-cell">
+                                    <select name="Items[@i].ProductId" class="form-select product-select" data-index="@i">
+                                        <option value="">-- Seçiniz --</option>
+                                        @foreach (var p in Model.Products!)
+                                        {
+                                            <option value="@p.Value">@p.Text</option>
+                                        }
+                                    </select>
+                                    <input type="hidden" name="Items[@i].OriginalUnitPrice" class="orig-unit-price" />
+                                    <input type="hidden" name="Items[@i].OriginalCurrency" class="orig-currency" />
+                                    <input type="hidden" name="Items[@i].UnitLabel" class="unit-label" />
+                                </td>
+
+                                <td>
+                                    <div class="input-group">
+                                        <input name="Items[@i].Quantity" class="form-control text-end qty" type="number" min="1" value="@Model.Items[i].Quantity" />
+                                        <span class="input-group-text unit-text">—</span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="input-group">
+                                        <input name="Items[@i].UnitPrice" class="form-control text-end unit-price" type="number" step="0.01" value="@Model.Items[i].UnitPrice" />
+                                        <span class="input-group-text currency-symbol">₺</span>
+                                    </div>
+                                </td>
+
+                                <td class="text-muted">
+                                    <span class="orig-price">—</span>
+                                </td>
+
+                                <td>
+                                    <input name="Items[@i].TaxRate" class="form-control text-end tax" type="number" min="0" max="100" value="18" />
+                                </td>
+
+                                <td>
+                                    <div class="fw-semibold line-total text-end">0,00</div>
+                                </td>
+
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-danger btn-sm btnRemove">Sil</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Ürün seçenekleri için GİZLİ prototip: her zaman TAM liste -->
+            <select id="productOptionsProto" class="d-none">
+                <option value="">-- Seçiniz --</option>
+                @foreach (var p in Model.Products!)
+                {
+                    <option value="@p.Value">@p.Text</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body row g-3">
+            <div class="col-md-3 ms-auto">
+                <div class="d-flex justify-content-between">
+                    <div>Ara Toplam</div>
+                    <div id="subTotal">0,00</div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <div>Toplam KDV</div>
+                    <div id="taxTotal">0,00</div>
+                </div>
+                <hr class="my-2" />
+                <div class="d-flex justify-content-between fw-bold">
+                    <div>Genel Toplam</div>
+                    <div id="grandTotal">0,00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        <button type="submit" class="btn btn-success">Kaydet</button>
+        <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const itemsTbody = document.querySelector('#itemsTable tbody');
+        const invoiceCurrencyEl = document.getElementById('invoiceCurrency');
+        const shipmentSelect = document.getElementById('shipmentSelect');
+        const productOptionsProto = document.getElementById('productOptionsProto');
+
+        function getProductOptionsHtml(){
+            return productOptionsProto ? productOptionsProto.innerHTML : '<option value="">-- Seçiniz --</option>';
+        }
+
+        // --- Basit kur tablosu (örnek). İstersen API'den dinamik çekebilirsin. ---
+        const rates = {
+            "TRY": { "TRY": 1,   "USD": 0.032, "EUR": 0.029 },
+            "USD": { "TRY": 31,  "USD": 1,     "EUR": 0.92  },
+            "EUR": { "TRY": 34,  "USD": 1.08,  "EUR": 1     }
+        };
+        function convert(amount, from, to) {
+            if (!from || !to || from === to) return Number(amount) || 0;
+            const r = (rates[from] && rates[from][to]) ? rates[from][to] : 1;
+            return (Number(amount) || 0) * r;
+        }
+        function symbol(cur){ return cur==="USD"?"$":(cur==="EUR"?"€":"₺"); }
+        function fmt(n){ return (Number(n)||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+        function recalcLine(tr){
+            const qty = Number(tr.querySelector('.qty').value || 0);
+            const unit = Number(tr.querySelector('.unit-price').value || 0);
+            const tax = Number(tr.querySelector('.tax').value || 0);
+            const net = qty * unit;
+            const kdv = net * (tax/100);
+            tr.querySelector('.line-total').textContent = fmt(net + kdv) + ' ' + symbol(invoiceCurrencyEl.value);
+        }
+        function recalcTotals(){
+            let sub=0, taxAll=0;
+            itemsTbody.querySelectorAll('tr').forEach(tr=>{
+                const qty = Number(tr.querySelector('.qty').value || 0);
+                const unit = Number(tr.querySelector('.unit-price').value || 0);
+                const tax = Number(tr.querySelector('.tax').value || 0);
+                const net = qty * unit;
+                const kdv = net * (tax/100);
+                sub += net; taxAll += kdv;
+            });
+            document.getElementById('subTotal').textContent = fmt(sub);
+            document.getElementById('taxTotal').textContent = fmt(taxAll);
+            document.getElementById('grandTotal').textContent = fmt(sub + taxAll) + ' ' + symbol(invoiceCurrencyEl.value);
+        }
+
+        // Ürün seçildiğinde: Orijinal fiyat/birim çek → fatura PB'ine çevir → alanları doldur
+        async function loadProductInfo(productId, tr){
+            if(!productId) return;
+            const resp = await fetch(`/Invoice/GetProductInfo?id=${productId}`);
+            if(!resp.ok) return;
+            const data = await resp.json();
+
+            const origPrice = Number(data.unitPrice || 0);
+            const origCur   = data.currency || 'TRY';
+            const invCur    = invoiceCurrencyEl.value;
+
+            tr.querySelector('.unit-text').textContent = data.unit || 'Adet';
+            tr.querySelector('.orig-unit-price')?.setAttribute('value', origPrice);
+            tr.querySelector('.orig-currency')?.setAttribute('value', origCur);
+
+            const converted = convert(origPrice, origCur, invCur);
+            tr.querySelector('.unit-price').value = converted.toFixed(2);
+
+            tr.querySelector('.orig-price').textContent = `${fmt(origPrice)} ${symbol(origCur)}`;
+
+            recalcLine(tr); recalcTotals();
+        }
+
+        // Para birimi değişince: semboller + tüm satırlar için yeni çevrim
+        invoiceCurrencyEl.addEventListener('change', ()=>{
+            const cur = invoiceCurrencyEl.value;
+            document.querySelectorAll('.currency-symbol').forEach(el=>el.textContent = symbol(cur));
+
+            itemsTbody.querySelectorAll('tr').forEach(tr=>{
+                const origPrice = Number(tr.querySelector('.orig-unit-price')?.value || 0);
+                const origCur   = tr.querySelector('.orig-currency')?.value || 'TRY';
+                if (!origPrice) return;
+                const converted = convert(origPrice, origCur, cur);
+                tr.querySelector('.unit-price').value = converted.toFixed(2);
+                recalcLine(tr);
+            });
+            recalcTotals();
+        });
+
+        // Değişiklik/silme olayları
+        itemsTbody.addEventListener('change', async (e)=>{
+            const tr = e.target.closest('tr');
+            if (e.target.classList.contains('product-select')) {
+                await loadProductInfo(e.target.value, tr);
+            } else if (e.target.classList.contains('qty') || e.target.classList.contains('unit-price') || e.target.classList.contains('tax')) {
+                recalcLine(tr); recalcTotals();
+            }
+        });
+        itemsTbody.addEventListener('click', (e)=>{
+            if (e.target.classList.contains('btnRemove')) {
+                e.preventDefault();
+                e.target.closest('tr').remove();
+                recalcTotals();
+            }
+        });
+
+        // Sevkiyat seçilince irsaliye kalemlerini yükle
+        shipmentSelect.addEventListener('change', async function(){
+            const val = this.value;
+            if(!val) return;
+            const resp = await fetch(`/Invoice/GetShipmentItems?id=${val}`);
+            if(!resp.ok) return;
+            const data = await resp.json();
+            const invCur = invoiceCurrencyEl.value;
+
+            itemsTbody.innerHTML = '';
+            data.forEach((x, idx)=>{
+                const converted = convert(Number(x.unitPrice || 0), x.currency || 'TRY', invCur);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="product-cell">
+                        <select name="Items[${idx}].ProductId" class="form-select product-select" data-index="${idx}">
+                            ${getProductOptionsHtml()}
+                        </select>
+                        <input type="hidden" name="Items[${idx}].OriginalUnitPrice" class="orig-unit-price" value="${x.unitPrice ?? 0}" />
+                        <input type="hidden" name="Items[${idx}].OriginalCurrency" class="orig-currency" value="${x.currency ?? 'TRY'}" />
+                        <input type="hidden" name="Items[${idx}].UnitLabel" class="unit-label" value="${x.unit ?? 'Adet'}" />
+                    </td>
+                    <td>
+                        <div class="input-group">
+                            <input name="Items[${idx}].Quantity" class="form-control text-end qty" type="number" min="1" value="${x.quantity}" />
+                            <span class="input-group-text unit-text">${x.unit ?? 'Adet'}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="input-group">
+                            <input name="Items[${idx}].UnitPrice" class="form-control text-end unit-price" type="number" step="0.01" value="${converted.toFixed(2)}" />
+                            <span class="input-group-text currency-symbol">${symbol(invCur)}</span>
+                        </div>
+                    </td>
+                    <td class="text-muted"><span class="orig-price">${(Number(x.unitPrice||0)).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})} ${symbol(x.currency || 'TRY')}</span></td>
+                    <td><input name="Items[${idx}].TaxRate" class="form-control text-end tax" type="number" min="0" max="100" value="18" /></td>
+                    <td><div class="fw-semibold line-total text-end">0,00</div></td>
+                    <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm btnRemove">Sil</button></td>`;
+                itemsTbody.appendChild(tr);
+                // Sevkiyetten gelen ürün ID'yi seç
+                try { tr.querySelector('.product-select').value = x.productId; } catch {}
+                recalcLine(tr);
+            });
+            recalcTotals();
+        });
+
+        // Satır Ekle -> boş satır ekleme
+        document.addEventListener('addRowRequested', ()=>{
+            const idx = itemsTbody.querySelectorAll('tr').length;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="product-cell">
+                    <select name="Items[${idx}].ProductId" class="form-select product-select" data-index="${idx}">
+                        ${getProductOptionsHtml()}
+                    </select>
+                    <input type="hidden" name="Items[${idx}].OriginalUnitPrice" class="orig-unit-price" value="" />
+                    <input type="hidden" name="Items[${idx}].OriginalCurrency" class="orig-currency" value="" />
+                    <input type="hidden" name="Items[${idx}].UnitLabel" class="unit-label" value="" />
+                </td>
+                <td>
+                    <div class="input-group">
+                        <input name="Items[${idx}].Quantity" class="form-control text-end qty" type="number" min="1" value="1" />
+                        <span class="input-group-text unit-text">—</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="input-group">
+                        <input name="Items[${idx}].UnitPrice" class="form-control text-end unit-price" type="number" step="0.01" value="0" />
+                        <span class="input-group-text currency-symbol">${symbol(invoiceCurrencyEl.value)}</span>
+                    </div>
+                </td>
+                <td class="text-muted">
+                    <span class="orig-price">—</span>
+                </td>
+                <td><input name="Items[${idx}].TaxRate" class="form-control text-end tax" type="number" min="0" max="100" value="18" /></td>
+                <td><div class="fw-semibold line-total text-end">0,00</div></td>
+                <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm btnRemove">Sil</button></td>`;
+            itemsTbody.appendChild(tr);
+            recalcLine(tr);
+            recalcTotals();
+        });
+
+        // İlk yüklemede para birimi sembollerini ayarla
+        document.addEventListener('DOMContentLoaded', ()=>{
+            const cur = invoiceCurrencyEl.value;
+            document.querySelectorAll('.currency-symbol').forEach(el=>el.textContent = symbol(cur));
+        });
+    </script>
+}
