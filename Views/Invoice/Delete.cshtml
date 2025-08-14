@@ -1,0 +1,11 @@
+﻿@model EFaturaApp.Models.Invoice
+@{
+    ViewData["Title"] = "Fatura Sil";
+}
+<h3>Bu faturayı silmek istediğinize emin misiniz?</h3>
+<p><strong>@Model.InvoiceNo</strong> - @Model.InvoiceDate?.ToString("dd.MM.yyyy")</p>
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Evet, Sil</button>
+    <a asp-action="Index" class="btn btn-secondary">Vazgeç</a>
+</form>

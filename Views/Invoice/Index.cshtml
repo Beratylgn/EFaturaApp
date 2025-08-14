@@ -27,24 +27,16 @@
                 <td>@inv.InvoiceNo</td>
                 <td>@inv.InvoiceDate?.ToString("dd.MM.yyyy")</td>
                 <td>@inv.ReceiverCustomer?.CompanyName</td>
-                <td class="text-end">@inv.TotalAmount?.ToString("N2") @sym(inv.Currency)</td>
+                <td class="text-end">@inv.TotalAmount?.ToString("N2")</td>
                 <td class="text-end">
-                    <div class="d-inline-flex flex-wrap gap-1 justify-content-end">
-                        <a asp-action="Details" asp-route-id="@inv.Id" class="btn btn-sm btn-info">Detay</a>
-                        <a asp-action="Edit" asp-route-id="@inv.Id" class="btn btn-sm btn-warning">Düzenle</a>
-
-                        @* Silme işlemini POST ile yapalım *@
-                        <form asp-action="Delete" asp-route-id="@inv.Id" method="post" class="d-inline" onsubmit="return confirm('Bu faturayı silmek istediğinizden emin misiniz?');">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-danger">Sil</button>
-                        </form>
-
-                        @* PDF / Excel dışa aktarma (aksi bir ad kullanıyorsanız değiştirin) *@
-                        <a asp-action="Pdf" asp-route-id="@inv.Id" class="btn btn-sm btn-secondary">PDF</a>
-                        <a asp-action="Excel" asp-route-id="@inv.Id" class="btn btn-sm btn-success">Excel</a>
-                    </div>
+                    <a asp-action="Details" asp-route-id="@inv.Id" class="btn btn-info btn-sm">Detay</a>
+                    <a asp-action="Edit" asp-route-id="@inv.Id" class="btn btn-warning btn-sm">Düzenle</a>
+                    <a asp-action="Delete" asp-route-id="@inv.Id" class="btn btn-danger btn-sm">Sil</a>
+                    <a asp-action="ExportPdf" asp-route-id="@inv.Id" class="btn btn-secondary btn-sm">PDF</a>
+                    <a asp-action="ExportExcel" asp-route-id="@inv.Id" class="btn btn-success btn-sm">Excel</a>
                 </td>
             </tr>
         }
+
     </tbody>
 </table>

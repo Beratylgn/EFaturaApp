@@ -1,0 +1,120 @@
+﻿@model EFaturaApp.Models.ViewModels.InvoiceEditViewModel
+
+@{
+    ViewData["Title"] = "Fatura Düzenle";
+}
+
+<h2>Fatura Düzenle - @Model.Invoice.InvoiceNumber</h2>
+
+<form asp-action="Edit">
+    <div class="form-group">
+        <label>Müşteri</label>
+        <select asp-for="Invoice.ReceiverCustomerId" class="form-control" asp-items="Model.Customers"></select>
+    </div>
+    <div class="form-group">
+        <label>Sevkiyat</label>
+        <select asp-for="Invoice.ShipmentId" class="form-control" asp-items="Model.Shipments"></select>
+    </div>
+    <div class="form-group">
+        <label>Para Birimi</label>
+        <select asp-for="Invoice.Currency" class="form-control">
+            <option value="TRY">TRY</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Tarih</label>
+        <input asp-for="Invoice.InvoiceDate" class="form-control" type="datetime-local" />
+    </div>
+
+    <h4>Ürün Kalemleri</h4>
+    <table class="table" id="invoiceItemsTable">
+        <thead>
+            <tr>
+                <th>Ürün</th>
+                <th>Miktar</th>
+                <th>Birim</th>
+                <th>Birim Fiyat</th>
+                <th>KDV (%)</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.InvoiceItems.Count; i++)
+            {
+                <tr>
+                    <td>
+                        <select name="InvoiceItems[@i].ProductId" class="form-control" onchange="updateUnit(this)">
+                            @foreach (var product in Model.Products)
+                            {
+                                <option value="@product.Id" data-unit="@product.Unit" @(product.Id == Model.InvoiceItems[i].ProductId ? "selected" : "")>@product.Name</option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" name="InvoiceItems[@i].Quantity" value="@Model.InvoiceItems[i].Quantity" class="form-control" />
+                    </td>
+                    <td>
+                        <span class="unitDisplay">@Model.InvoiceItems[i].Unit</span>
+                        <input type="hidden" name="InvoiceItems[@i].Unit" value="@Model.InvoiceItems[i].Unit" />
+                    </td>
+                    <td>
+                        <input type="number" step="0.01" name="InvoiceItems[@i].UnitPrice" value="@Model.InvoiceItems[i].UnitPrice" class="form-control" />
+                    </td>
+                    <td>
+                        <input type="number" step="1" name="InvoiceItems[@i].VAT" value="@Model.InvoiceItems[i].VAT" class="form-control" />
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="removeRow(this)">Sil</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-info" onclick="addRow()">+ Ürün Ekle</button>
+
+    <br /><br />
+    <button type="submit" class="btn btn-success">Kaydet</button>
+    <a asp-action="Index" class="btn btn-secondary">İptal</a>
+</form>
+
+@section Scripts {
+    <script>
+        function removeRow(btn) {
+            var row = btn.closest('tr');
+            row.remove();
+        }
+
+        function addRow() {
+            var table = document.getElementById("invoiceItemsTable").getElementsByTagName('tbody')[0];
+            var rowCount = table.rows.length;
+            var row = table.insertRow(rowCount);
+            row.innerHTML = `
+                <td>
+                    <select name="InvoiceItems[${rowCount}].ProductId" class="form-control" onchange="updateUnit(this)">
+                        @foreach (var product in Model.Products)
+                        {
+                            <option value="@product.Id" data-unit="@product.Unit">@product.Name</option>
+                        }
+                    </select>
+                </td>
+                <td><input type="number" name="InvoiceItems[${rowCount}].Quantity" class="form-control" /></td>
+                <td>
+                    <span class="unitDisplay"></span>
+                    <input type="hidden" name="InvoiceItems[${rowCount}].Unit" class="unitInput" />
+                </td>
+                <td><input type="number" step="0.01" name="InvoiceItems[${rowCount}].UnitPrice" class="form-control" /></td>
+                <td><input type="number" step="1" name="InvoiceItems[${rowCount}].VAT" class="form-control" /></td>
+                <td><button type="button" class="btn btn-danger" onclick="removeRow(this)">Sil</button></td>
+            `;
+        }
+
+        function updateUnit(select) {
+            var unit = select.options[select.selectedIndex].getAttribute('data-unit');
+            var row = select.closest('tr');
+            row.querySelector('.unitDisplay').textContent = unit;
+            row.querySelector('.unitInput').value = unit;
+        }
+    </script>
+}
